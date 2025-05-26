@@ -2,8 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bài Cào (3 Cây) - Monad Testnet</title>
+  <title>Chơi Bài Cào (3 cây) - Monad Testnet</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -18,7 +17,7 @@
     }
     #game-container {
         background-color: #fff;
-        padding: 20px;
+        padding: 30px;
         border-radius: 12px;
         box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         width: 100%;
@@ -121,7 +120,7 @@
         border: 0;
         height: 1px;
         background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0));
-        margin: 10px 0;
+        margin: 25px 0;
     }
     .spinner {
       border: 4px solid rgba(0, 0, 0, 0.1);
@@ -136,281 +135,33 @@
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
-    } 
-    #logo-container {
-      text-align: center;
-      margin-bottom: 10px; /* Khoảng cách giữa logo và tiêu đề game */
     }
-    #logo-container img {
-      max-width: 100px; /* Điều chỉnh kích thước logo */
-      height: auto;
-    }
-
-    #banner-container {
-      width: 100%;
-      max-width: 900px; /* Điều chỉnh theo kích thước banner của bạn */
-      margin: 30px auto 20px auto; /* Căn giữa và tạo khoảng cách */
-      text-align: center;
-    }
-    #banner-container img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 8px; /* Bo góc nhẹ cho banner */
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-     /* --- CSS cũ của bạn từ đây --- */
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f0f2f5;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-      line-height: 1.6;
-	  font-size:12px;
-    }
-
-    #page-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      width: 100%;
-      max-width: 1400px;
-      margin: 0 auto;
-      gap: 20px;
-    }
-
-    #game-wrapper {
-        flex-grow: 1;
-        flex-basis: 600px;
-        min-width: 320px;
-        display: flex;
-        justify-content: center;
-    }
-
-    #game-container {
-        background-color: #ffffff;
-        padding: 15px;
-        border-radius: 12px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-        width: 100%;
-        max-width: 600px;
-        text-align: center;
-    }
-
-    .side-panel {
-      flex-basis: 280px;
-      flex-shrink: 0;
-      padding: 5px;
-      background-color: #ffffff;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.07);
-      text-align: left;
-      height: fit-content;
-    }
-
-    .side-panel h2 {
-      text-align: center;
-      color: #2c3e50;
-      margin-top: 0;
-      border-bottom: 2px solid #4CAF50;
-      padding-bottom: 10px;
-      margin-bottom: 20px;
-      font-size: 1.3em;
-    }
-
-    .side-panel ul { list-style-position: inside; padding-left: 0; }
-    .side-panel ul li { margin-bottom: 5px; font-size: 0.9em; }
-    .side-panel ul ul { margin-top: 5px; padding-left: 20px; }
-    .side-panel p { font-size: 0.9em; margin-bottom: 10px; }
-    .side-panel a { color: #4CAF50; text-decoration: none; }
-    .side-panel a:hover { text-decoration: underline; }
-    .side-panel img.sponsor-logo { /* Class riêng cho logo nhà tài trợ nếu cần style khác */
-        max-width: 180px; /* Kích thước ví dụ */
-        height: auto;
-        display: block;
-        margin: 15px auto;
-        border-radius: 6px;
-    }
-
-    h1 {
-      color: #2c3e50;
-      margin-bottom: 10px;
-      font-size: 1.8em;
-    }
-    .cards-area {
-      display: flex;
-      justify-content: space-around;
-      margin: 10px 0;
-      min-height: 70px;
-      padding: 15px;
-      background-color: #e8f5e9;
-      border-radius: 10px;
-    }
-    .hand-display {
-      font-size: 1.15em;
-      color: #1b5e20;
-      font-weight: bold;
-    }
-    #player-hand-area, #dealer-hand-area {
-      width: 45%;
-      padding: 10px;
-      border: 1px solid #c8e6c9;
-      border-radius: 6px;
-      background-color: #f1f8e9;
-      min-height: 40px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .hand-title {
-        font-size: 0.9em;
-        color: #555;
-        margin-bottom: 5px;
-    }
-    button {
-      padding: 12px 25px; margin: 10px 5px; background-color: #4CAF50; color: white;
-      border: none; border-radius: 25px; cursor: pointer; font-size: 1em;
-      transition: background-color 0.25s ease, transform 0.1s ease;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-    }
-    button:hover { background-color: #43A047; transform: translateY(-1px); }
-    button:active { transform: translateY(0px); box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
-    button:disabled { background-color: #a5d6a7; cursor: not-allowed; transform: translateY(0); box-shadow: none; }
-    input[type="number"] {
-      padding: 12px; margin: 10px 5px; border-radius: 25px; border: 1px solid #ccc;
-      font-size: 1em; width: calc(60% - 22px); max-width: 200px; text-align: center;
-    }
-    #result {
-      font-weight: bold; margin-top: 10px; padding: 15px; background-color: #e3f2fd;
-      border: 1px solid #bbdefb; border-radius: 8px; min-height: 25px;
-      line-height: 1.5; color: #1e88e5;
-    }
-    #wallet-info, #wallet-balance { font-size: 0.95em; color: #555; margin: 8px 0; }
-    #disconnect-wallet { background-color: #f44336; }
-    #disconnect-wallet:hover { background-color: #e53935; }
-    hr { border: 0; height: 1px; background-image: linear-gradient(to right, rgba(0,0,0,0), rgba(0,0,0,0.15), rgba(0,0,0,0)); margin: 10px 0; }
-    .spinner {
-      border: 4px solid rgba(0,0,0,0.1); width: 24px; height: 24px; border-radius: 50%;
-      border-left-color: #4CAF50; animation: spin 1s ease infinite; display: none; margin: 10px auto;
-    }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-    /* Responsive */
-    @media (max-width: 1024px) {
-      #page-container {
-        flex-direction: column;
-        align-items: center;
-      }
-      .side-panel {
-        width: 90%;
-        max-width: 600px;
-        margin: 20px 0;
-        flex-basis: auto;
-      }
-      #game-wrapper {
-          order: -1; /* Đưa khung game lên đầu trên mobile */
-      }
-    }
-    @media (max-width: 768px) {
-        h1 { font-size: 1.5em; }
-        button { font-size: 0.9em; padding: 10px 20px;}
-        input[type="number"] { font-size: 0.9em; padding: 10px;}
-        .side-panel h2 { font-size: 1.15em; }
-        .side-panel p, .side-panel ul li { font-size: 0.85em;}
-    }
-
   </style>
 </head>
 <body>
-  <div id="page-container">
-    <div id="rules-panel" class="side-panel">
-      <h2>Luật Chơi Bài Cào (3 Cây)</h2>
-      <p>Chào mừng bạn đến với trò chơi Bài Cào trên Monad Testnet!</p>
-      <ul>
-        <li><strong>Cách chơi:</strong> Mỗi người chơi và nhà cái sẽ được chia 3 lá bài.</li>
-        <li><strong>Tính điểm (Nút):</strong>
-          <ul>
-            <li>Các lá A (Át) tính 1 điểm.</li>
-            <li>Các lá từ 2 đến 9 có điểm tương ứng với số trên lá bài.</li>
-            <li>Các lá 10, J, Q, K tính 0 điểm.</li>
-            <li>Tổng điểm của 3 lá bài sẽ được lấy phần dư khi chia cho 10.</li>
-          </ul>
-        </li>
-        <li><strong>So sánh điểm:</strong>
-            <ul>
-                <li>Người chơi có điểm cao hơn nhà cái sẽ thắng.</li>
-                <li>Người chơi có điểm thấp hơn nhà cái sẽ thua.</li>
-                <li>Nếu điểm bằng nhau là hòa.</li>
-            </ul>
-        </li>
-        <li><strong>Đặt cược:</strong>
-            <ul>
-                <li>Người chơi đặt một số tiền cược (MON) trước khi chia bài.</li>
-                <li>Số tiền cược phải lớn hơn 0.</li>
-                <li>Bạn chỉ có thể có một lượt cược đang hoạt động.</li>
-            </ul>
-        </li>
-        <li><strong>Trả thưởng (Theo Contract <code>BaiCaoV6</code>):</strong>
-            <ul>
-                <li><strong>Thắng:</strong> Bạn nhận lại tiền cược gốc + 90% tiền cược gốc làm tiền lời.</li>
-                <li><strong>Hòa:</strong> Bạn sẽ được hoàn lại toàn bộ tiền cược gốc.</li>
-                <li><strong>Thua:</strong> Tiền cược của bạn sẽ thuộc về nhà cái (contract).</li>
-            </ul>
-        </li>
-        <li><strong>Lưu ý:</strong> Đây là trò chơi trên Testnet. Mọi giao dịch đều được ghi lại trên blockchain.</li>
-      </ul>
-      <p>Chúc bạn chơi vui vẻ và may mắn!</p>
+  <div id="game-container">
+    <h1>Bài Cào Hồi Hộp - Monad Testnet</h1>
+    <div id="wallet-status">
+        <div id="wallet-info">Ví: Chưa kết nối</div>
+        <div id="wallet-balance">Số dư ví: 0 MON</div>
+        <button id="connect-wallet">Kết nối ví</button>
+        <button id="disconnect-wallet" style="display:none;">Ngắt kết nối</button>
     </div>
-
-    <div id="game-wrapper">
-        <div id="game-container">
-            <div id="logo-container">
-                <!-- THAY THẾ 'link_den_logo_cua_ban.png' BẰNG ĐƯỜNG DẪN THỰC TẾ ĐẾN FILE LOGO -->
-                <img src="logo.jpg" alt="Logo Trò Chơi">
-            </div>
-            <h1>Bài Cào (3 Cây) - Monad Testnet</h1>
-            <div id="wallet-status">
-                <div id="wallet-info">Ví: Chưa kết nối</div>
-                <div id="wallet-balance">Số dư ví: 0 MON</div>
-                <button id="connect-wallet">Kết nối ví</button>
-                <button id="disconnect-wallet" style="display:none;">Ngắt kết nối</button>
-            </div>
-            <hr>
-            <div id="game-controls">
-                <input type="number" id="bet-amount" placeholder="Cược (MON)" step="0.1" min="0.1" max="0.3" disabled>
-                <button id="place-bet-button" onclick="placeBet()" disabled>Đặt Cược (min=0.1 max=0.3)</button>
-                <button id="deal-cards-button" onclick="dealCards()" disabled>Chia Bài</button>
-            </div>
-            <div class="cards-area">
-                <div id="player-hand-area"><span class="hand-title">Bài Của Bạn</span><span class="hand-display"></span></div>
-                <div id="dealer-hand-area"><span class="hand-title">Bài Nhà Cái</span><span class="hand-display"></span></div>
-            </div>
-            <div class="spinner" id="loading-spinner"></div>
-            <div id="result">Vui lòng kết nối ví để bắt đầu trò chơi.</div>
-            
-        </div>
+    <hr>
+    <div id="game-controls">
+        <input type="number" id="bet-amount" placeholder="Cược (MON)" step="0.1" min="0.1" disabled>
+        <button id="place-bet-button" onclick="placeBet()" disabled>Đặt Cược</button>
+        <button id="deal-cards-button" onclick="dealCards()" disabled>Chia Bài</button>
     </div>
-
-    <div id="sponsors-panel" class="side-panel">
-      <h2>Nhà Tài Trợ</h2>
-      <p>Trò chơi này được phát triển với sự hỗ trợ từ cộng đồng Monad và các đối tác.</p>
-      <img src="banner.jpg" alt="vietnads" class="sponsor-logo"> 
-      <img src="duybowl.jpg" alt="duybowl" class="sponsor-logo">
-      <ul>
-        <li><a href="https://monad.xyz" target="_blank" rel="noopener noreferrer">Trang chủ Monad</a></li> 
-       <!--  <li><a href="#" target="_blank" rel="noopener noreferrer">Đối tác chiến lược Alpha</a></li>-->
-      </ul>
-      <p>Xin chân thành cảm ơn sự đồng hành của quý vị!</p>
+    <div class="cards-area">
+        <div id="player-hand"><span class="hand-title">Bài Của Bạn</span><span class="hand"></span></div>
+        <div id="dealer-hand"><span class="hand-title">Bài Nhà Cái</span><span class="hand"></span></div>
     </div>
+    <div class="spinner" id="loading-spinner"></div>
+    <div id="result">Vui lòng kết nối ví để bắt đầu trò chơi.</div>
+    <hr>
+    <button id="withdraw-funds-button" onclick="withdrawFunds()" disabled style="background-color: #757575;">Rút Quỹ (Owner)</button>
   </div>
-
-  <!--  <div id="banner-container">
-    <a href="banner.jpg" target="_blank" rel="noopener noreferrer">
-        <img src="banner.jpg" alt="vietnads">
-    </a>
-  </div> -->
-
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
   <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
@@ -421,18 +172,19 @@
     let web3ModalInstance;
     let currentBetAmount = 0;
 
+    // THAY ĐỊA CHỈ CONTRACT CỦA BẠN VÀO ĐÂY SAU KHI DEPLOY BaiCaoV5.sol
     const contractAddress = '0x4C660aE681D531498A06042a1F8F09f228b59349'; 
-    const contractABI = [ // ABI của BaiCaoV5 
+    const contractABI = [ // ABI của BaiCaoV5
         {"inputs":[],"stateMutability":"payable","type":"constructor"},
-        {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"player","type":"address"},{"indexed":false,"internalType":"uint256","name":"betAmount","type":"uint256"},{"indexed":false,"internalType":"enum BaiCaoV6.GameResult","name":"clientResult","type":"uint8"}],"name":"BetBeingResolved","type":"event"},
+        {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"player","type":"address"},{"indexed":false,"internalType":"uint256","name":"betAmount","type":"uint256"}],"name":"BetBeingResolved","type":"event"},
         {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"player","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"BetPlaced","type":"event"},
-        {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"player","type":"address"},{"indexed":false,"internalType":"uint256","name":"betAmount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"payoutAmount","type":"uint256"},{"indexed":false,"internalType":"enum BaiCaoV6.GameResult","name":"finalResult","type":"uint8"}],"name":"BetResolved","type":"event"},
+        {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"player","type":"address"},{"indexed":false,"internalType":"uint256","name":"betAmount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"payoutAmount","type":"uint256"},{"indexed":false,"internalType":"bool","name":"playerWon","type":"bool"}],"name":"BetResolved","type":"event"},
         {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"by","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"FundsWithdrawn","type":"event"},
         {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"activeBets","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
         {"inputs":[],"name":"getContractBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
         {"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
         {"inputs":[],"name":"placeBet","outputs":[],"stateMutability":"payable","type":"function"},
-        {"inputs":[{"internalType":"enum BaiCaoV6.GameResult","name":"clientResult","type":"uint8"}],"name":"resolveBet","outputs":[],"stateMutability":"nonpayable","type":"function"},
+        {"inputs":[{"internalType":"bool","name":"playerActuallyWonFromClient","type":"bool"}],"name":"resolveBet","outputs":[],"stateMutability":"nonpayable","type":"function"},
         {"inputs":[],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},
         {"stateMutability":"payable","type":"fallback"},
         {"stateMutability":"payable","type":"receive"}
@@ -450,7 +202,6 @@
         blockExplorerUrls: ['https://explorer.testnet.monad.xyz/'],
     };
     const loadingSpinner = document.getElementById('loading-spinner');
-    const GameResult = { LOSS: 0, WIN: 1, DRAW: 2 };
 
     function initWeb3Modal() {
         const providerOptions = {
@@ -465,7 +216,9 @@
     }
 
     async function connectWallet() {
-      if (!web3ModalInstance) { document.getElementById('result').innerText = 'Lỗi: Web3Modal chưa sẵn sàng.'; return; }
+      if (!web3ModalInstance) {
+        document.getElementById('result').innerText = 'Lỗi: Web3Modal chưa sẵn sàng.'; return;
+      }
       try {
         document.getElementById('result').innerText = 'Đang chờ chọn ví...';
         rawProvider = await web3ModalInstance.connect();
@@ -475,16 +228,19 @@
         if (network.chainId !== BigInt(monadTestnetChainIdDecimal)) {
           document.getElementById('result').innerText = 'Mạng không đúng. Yêu cầu chuyển/thêm Monad Testnet...';
           try {
-            if (rawProvider.request) { await rawProvider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: monadTestnetChainIdHex }] });
-            } else { alert('Vui lòng chuyển ví sang Monad Testnet (ID: 10143) và thử lại.'); throw new Error('Cần chuyển mạng thủ công.'); }
-            provider = new ethers.BrowserProvider(rawProvider);
+            if (rawProvider.request) {
+                await rawProvider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: monadTestnetChainIdHex }] });
+            } else {
+                alert('Vui lòng chuyển ví sang Monad Testnet (ID: 10143) và thử lại.'); throw new Error('Cần chuyển mạng thủ công.');
+            }
+            provider = new ethers.BrowserProvider(rawProvider); // Re-initialize
             const newNetwork = await provider.getNetwork();
             if (newNetwork.chainId !== BigInt(monadTestnetChainIdDecimal)) throw new Error('Chuyển mạng không thành công.');
           } catch (switchError) {
             if (switchError.code === 4902 && rawProvider.request) {
               try {
                 await rawProvider.request({ method: 'wallet_addEthereumChain', params: [monadTestnetInfo] });
-                provider = new ethers.BrowserProvider(rawProvider);
+                provider = new ethers.BrowserProvider(rawProvider); // Re-initialize
                 const newNetwork = await provider.getNetwork();
                 if (newNetwork.chainId !== BigInt(monadTestnetChainIdDecimal)) throw new Error('Thêm mạng không thành công.');
               } catch (addError) { throw new Error(`Không thể thêm Monad Testnet: ${addError.message || 'Từ chối.'}`); }
@@ -494,11 +250,6 @@
         signer = await provider.getSigner();
         account = await signer.getAddress();
         document.getElementById('wallet-info').innerText = `Ví: ${account.slice(0, 6)}...${account.slice(-4)}`;
-        if (contractAddress === 'ĐỊA_CHỈ_CONTRACT_BAICAOV6_CỦA_BẠN') {
-            document.getElementById('result').innerText = 'LỖI: Vui lòng cập nhật địa chỉ contract trong code JavaScript!';
-            alert('LỖI: Vui lòng cập nhật địa chỉ contract trong code JavaScript!');
-            return;
-        }
         contract = new ethers.Contract(contractAddress, contractABI, signer);
         await updateBalance();
         document.getElementById('result').innerText = 'Kết nối ví thành công!';
@@ -519,7 +270,7 @@
             if (accounts.length === 0) { await disconnectWallet(); }
             else {
                 account = accounts[0];
-                signer = await provider.getSigner(account); // Lấy signer cho tài khoản mới
+                signer = await provider.getSigner(account);
                 contract = new ethers.Contract(contractAddress, contractABI, signer);
                 document.getElementById('wallet-info').innerText = `Ví: ${account.slice(0, 6)}...${account.slice(-4)}`;
                 await updateBalance();
@@ -533,7 +284,7 @@
                 document.getElementById('result').innerText = `Đã chuyển sang mạng không hỗ trợ (ID: ${newChainIdDecimal}). Vui lòng chuyển lại Monad Testnet.`;
                 await disconnectWallet();
             } else {
-                provider = new ethers.BrowserProvider(rawProvider); // Re-initialize provider for the new chain
+                provider = new ethers.BrowserProvider(rawProvider);
                 signer = await provider.getSigner();
                 account = await signer.getAddress();
                 contract = new ethers.Contract(contractAddress, contractABI, signer);
@@ -556,11 +307,10 @@
 
     function resetState() {
       provider = signer = account = contract = rawProvider = null;
-      currentBetAmount = 0;
       document.getElementById('wallet-info').innerText = 'Ví: Chưa kết nối';
       document.getElementById('wallet-balance').innerText = 'Số dư ví: 0 MON';
-      document.querySelector('#player-hand-area .hand-display').innerText = '';
-      document.querySelector('#dealer-hand-area .hand-display').innerText = '';
+      document.querySelector('#player-hand .hand').innerText = '';
+      document.querySelector('#dealer-hand .hand').innerText = '';
       document.getElementById('connect-wallet').style.display = 'inline-block';
       document.getElementById('disconnect-wallet').style.display = 'none';
       disableGameControls();
@@ -569,18 +319,14 @@
     async function enableGameControls() {
         document.getElementById('bet-amount').disabled = false;
         document.getElementById('place-bet-button').disabled = false;
+        // Nút deal-cards sẽ được enable sau khi đặt cược thành công
         document.getElementById('deal-cards-button').disabled = true; 
         if (contract && account) {
             try {
                 const ownerAddress = await contract.owner();
                 document.getElementById('withdraw-funds-button').disabled = ownerAddress.toLowerCase() !== account.toLowerCase();
-            } catch (e) { 
-                console.error("Error checking owner for withdraw button:", e);
-                document.getElementById('withdraw-funds-button').disabled = true; 
-            }
-        } else {
-            document.getElementById('withdraw-funds-button').disabled = true;
-        }
+            } catch (e) { document.getElementById('withdraw-funds-button').disabled = true; }
+        } else { document.getElementById('withdraw-funds-button').disabled = true; }
     }
 
     function disableGameControls() {
@@ -600,8 +346,7 @@
         const walletBal = await provider.getBalance(account);
         document.getElementById('wallet-balance').innerText = `Số dư ví: ${parseFloat(ethers.formatEther(walletBal)).toFixed(4)} MON`;
       } catch (error) {
-        console.error("Update balance error:", error);
-        document.getElementById('result').innerText = `Cập nhật số dư thất bại.`;
+        document.getElementById('result').innerText = `Cập nhật số dư thất bại: ${error.message}`;
       }
     }
 
@@ -610,17 +355,18 @@
       loadingSpinner.style.display = 'block';
       document.getElementById('result').innerText = 'Đang xử lý yêu cầu rút tiền...';
       try {
+        // Kiểm tra owner đã được thực hiện khi enable nút, nhưng kiểm tra lại cho chắc
         const ownerAddr = await contract.owner();
         if (ownerAddr.toLowerCase() !== account.toLowerCase()) {
             throw new Error("Chỉ chủ sở hữu mới được rút tiền!");
         }
         const tx = await contract.withdraw();
+        document.getElementById('result').innerText = 'Giao dịch rút tiền đã gửi, đợi xác nhận...';
         await tx.wait();
         await updateBalance();
         document.getElementById('result').innerText = `Đã rút thành công quỹ về ví của Owner!`;
       } catch (error) {
         document.getElementById('result').innerText = `Lỗi khi rút tiền: ${error.message}`;
-        console.error("Withdraw error:", error);
       } finally {
         loadingSpinner.style.display = 'none';
       }
@@ -635,7 +381,7 @@
     function calculatePoints(hand) {
       let points = 0;
       for (let card of hand) {
-        if (['K', 'Q', 'J'].includes(card.r)) points += 0;
+        if (['K', 'Q', 'J'].includes(card.r)) points += 0; // K, Q, J là 0 điểm (hoặc 10 -> 0 nút)
         else if (card.r === 'A') points += 1;
         else points += parseInt(card.r);
       }
@@ -655,23 +401,24 @@
       document.getElementById('deal-cards-button').disabled = true;
 
       try {
-        const betInWei = ethers.parseUnits(bet.toString(), 'ether');
+        const betInWei = ethers.parseEther(bet.toString());
+        // Kiểm tra active bet trên contract trước khi đặt
         const currentActiveBet = await contract.activeBets(account);
-        if (currentActiveBet > 0n) {
-            throw new Error("Bạn đã có một lượt cược đang chờ xử lý trên contract.");
+        if (currentActiveBet > 0n) { // BigInt comparison
+            throw new Error("Bạn đã có một lượt cược đang chờ xử lý trên contract. Hãy hoàn thành nó trước.");
         }
 
         const tx = await contract.placeBet({ value: betInWei });
+        document.getElementById('result').innerText = 'Giao dịch đặt cược đã gửi, đợi xác nhận...';
         await tx.wait();
-        currentBetAmount = bet;
+        currentBetAmount = bet; // Lưu số tiền đã cược thành công
         await updateBalance();
         document.getElementById('result').innerText = `Đã đặt cược ${bet} MON. Nhấn "Chia Bài"!`;
-        document.getElementById('deal-cards-button').disabled = false;
+        document.getElementById('deal-cards-button').disabled = false; // Kích hoạt nút chia bài
       } catch (error) {
         document.getElementById('result').innerText = `Lỗi khi đặt cược: ${error.message}`;
-        console.error("Place bet error:", error);
         currentBetAmount = 0;
-        document.getElementById('place-bet-button').disabled = false;
+        document.getElementById('place-bet-button').disabled = false; // Cho phép thử lại
       } finally {
         loadingSpinner.style.display = 'none';
       }
@@ -685,8 +432,8 @@
       document.getElementById('result').innerText = 'Đang chia bài... Xin chờ giây lát!';
       document.getElementById('deal-cards-button').disabled = true;
       document.getElementById('place-bet-button').disabled = true;
-      document.querySelector('#player-hand-area .hand-display').innerText = '...';
-      document.querySelector('#dealer-hand-area .hand-display').innerText = '...';
+      document.querySelector('#player-hand .hand').innerText = '...';
+      document.querySelector('#dealer-hand .hand').innerText = '...';
 
       try {
         createDeck(); shuffleDeck();
@@ -694,47 +441,36 @@
         dealerHand = deck.splice(0, 3);
         const playerPoints = calculatePoints(playerHand);
         const dealerPoints = calculatePoints(dealerHand);
-        
-        let clientGameResult;
-        if (playerPoints > dealerPoints) { clientGameResult = GameResult.WIN; }
-        else if (playerPoints < dealerPoints) { clientGameResult = GameResult.LOSS; }
-        else { clientGameResult = GameResult.DRAW; }
-        
-        console.log("Client GameResult to send to contract:", clientGameResult);
+        let playerActuallyWonClientSide = playerPoints > dealerPoints;
 
         document.getElementById('result').innerText = 'Đang xác nhận kết quả với blockchain...';
-        const tx = await contract.resolveBet(clientGameResult);
-        const receipt = await tx.wait();
-        console.log("resolveBet transaction Mined, receipt:", receipt);
-
-        if (receipt.status === 0) {
-            console.error("Transaction REVERTED by the contract!");
-            throw new Error("Giao dịch xử lý kết quả bị từ chối bởi contract.");
-        }
+        const tx = await contract.resolveBet(playerActuallyWonClientSide);
+        document.getElementById('result').innerText = 'Giao dịch đã gửi, chờ blockchain xác nhận kết quả...';
+        await tx.wait();
         
         await updateBalance();
 
         let finalResultMessage = '';
-        if (clientGameResult === GameResult.WIN) {
+        if (playerActuallyWonClientSide) {
             finalResultMessage = `BẠN THẮNG! Tiền thưởng đã được gửi vào ví!`;
-        } else if (clientGameResult === GameResult.LOSS) {
+        } else if (playerPoints < dealerPoints) {
             finalResultMessage = `NHÀ CÁI THẮNG! Chúc may mắn lần sau!`;
-        } else { // GameResult.DRAW
-            const betAmountFormatted = currentBetAmount.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 4});
-            finalResultMessage = `HÒA! Tiền cược (${betAmountFormatted} MON) đã được hoàn lại vào ví.`;
+        } else {
+            finalResultMessage = `HÒA! Tiền cược của bạn được giữ trong hợp đồng.`;
         }
         
-        document.querySelector('#player-hand-area .hand-display').innerText = `${playerHand.map(c=>c.r+c.s).join(', ')} (${playerPoints} nút)`;
-        document.querySelector('#dealer-hand-area .hand-display').innerText = `${dealerHand.map(c=>c.r+c.s).join(', ')} (${dealerPoints} nút)`;
+        document.querySelector('#player-hand .hand').innerText = `${playerHand.map(c=>c.r+c.s).join(', ')} (${playerPoints} nút)`;
+        document.querySelector('#dealer-hand .hand').innerText = `${dealerHand.map(c=>c.r+c.s).join(', ')} (${dealerPoints} nút)`;
         document.getElementById('result').innerText = finalResultMessage;
         
         currentBetAmount = 0;
         document.getElementById('place-bet-button').disabled = false;
         document.getElementById('bet-amount').value = '';
+        // Nút deal-cards-button sẽ được kích hoạt lại sau khi đặt cược mới
       } catch (error) {
-        document.getElementById('result').innerText = `Lỗi khi xử lý ván bài: ${error.message}`;
+        document.getElementById('result').innerText = `Lỗi khi xử lý ván bài: ${error.message}. Vui lòng thử lại.`;
         console.error('Deal/Resolve error:', error);
-        document.getElementById('deal-cards-button').disabled = false; 
+        document.getElementById('deal-cards-button').disabled = false; // Cho phép thử lại nếu có lỗi nghiêm trọng
         document.getElementById('place-bet-button').disabled = false; 
       } finally {
         loadingSpinner.style.display = 'none';
@@ -744,10 +480,6 @@
     window.addEventListener('DOMContentLoaded', async () => {
         initWeb3Modal();
         disableGameControls();
-        const placeholderFunc = () => console.warn("Chức năng chưa được triển khai đầy đủ hoặc đang được tải.");
-        if (typeof initWeb3Modal === 'undefined') window.initWeb3Modal = placeholderFunc;
-        if (typeof connectWallet === 'undefined') window.connectWallet = placeholderFunc;
-
         if (web3ModalInstance && web3ModalInstance.cachedProvider) {
             await connectWallet();
         } else {
