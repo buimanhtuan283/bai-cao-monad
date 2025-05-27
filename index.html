@@ -377,6 +377,7 @@ hr { border: 0; height: 1px; background-image: linear-gradient(to right, rgba(0,
         <div id="game-controls">
             <input type="number" id="bet-amount" placeholder="Cược (MON)" step="0.1" min="0.1" disabled>
             <button id="place-bet-button" onclick="placeBet()" disabled>Đặt Cược</button>
+            <button id="deal-cards-button" onclick="dealCards()" disabled>Chia Bài</button>
         </div>
         <div class="cards-area">
             <div id="player-hand-area"><span class="hand-title">Bài Của Bạn</span><span class="hand-display"></span></div>
@@ -672,7 +673,11 @@ hr { border: 0; height: 1px; background-image: linear-gradient(to right, rgba(0,
             document.getElementById('force-resolve-loss-button').disabled = false; 
         } finally {
             loadingSpinner.style.display = 'none';
-        }  if (!account || !contract) { document.getElementById('result').innerText = 'Vui lòng kết nối ví!'; return; }
+        }
+    }
+
+    async function dealCards() {
+        if (!account || !contract) { document.getElementById('result').innerText = 'Vui lòng kết nối ví!'; return; }
         
         loadingSpinner.style.display = 'block';
         document.getElementById('deal-cards-button').disabled = true;
@@ -765,102 +770,7 @@ hr { border: 0; height: 1px; background-image: linear-gradient(to right, rgba(0,
         } finally {
             loadingSpinner.style.display = 'none';
         }
-		
-		  if (!account || !contract) { document.getElementById('result').innerText = 'Vui lòng kết nối ví!'; return; }
-        
-        loadingSpinner.style.display = 'block';
-        document.getElementById('deal-cards-button').disabled = true;
-        document.getElementById('place-bet-button').disabled = true;
-        document.getElementById('force-resolve-loss-button').disabled = true;
-
-        try {
-            const activeBetOnContract = await contract.activeBets(account);
-            console.log("DealCards: Active bet on contract before resolve:", ethers.formatUnits(activeBetOnContract, 'ether'), "MON. JS currentBetAmount:", currentBetAmount);
-
-            if (activeBetOnContract === 0n && currentBetAmount <= 0) {
-                document.getElementById('result').innerText = 'Không có cược nào để giải quyết. Vui lòng đặt cược.';
-                document.getElementById('place-bet-button').disabled = false;
-                document.getElementById('force-resolve-loss-button').disabled = false; // Có thể bật lại nếu không có cược
-                loadingSpinner.style.display = 'none';
-                return;
-            }
-
-            let clientGameResultForResolve;
-            let playerPoints, dealerPoints; // Khai báo ở scope rộng hơn để dùng cho hiển thị
-
-            if (currentBetAmount > 0) { // Lượt chơi bình thường, đã có currentBetAmount từ placeBet thành công
-                document.getElementById('result').innerText = 'Đang chia bài...';
-                document.querySelector('#player-hand-area .hand-display').innerText = '...';
-                document.querySelector('#dealer-hand-area .hand-display').innerText = '...';
-                createDeck(); shuffleDeck();
-                playerHand = deck.splice(0, 3);
-                dealerHand = deck.splice(0, 3);
-                playerPoints = calculatePoints(playerHand);
-                dealerPoints = calculatePoints(dealerHand);
-
-              //  if (playerPoints > dealerPoints) { clientGameResultForResolve = GameResult.WIN; }
-               // else if (playerPoints < dealerPoints) { clientGameResultForResolve = GameResult.LOSS; }
-               // else { clientGameResultForResolve = GameResult.DRAW; }
-               // console.log(`Normal play - Player: ${playerPoints}, Dealer: ${dealerPoints}, Result to send: ${clientGameResultForResolve}`);
-            } else if (activeBetOnContract > 0n && currentBetAmount <= 0) { // Dọn cược kẹt
-                console.log("Cleaning up stuck bet. Will resolve as DRAW.");
-                document.getElementById('result').innerText = 'Đang cố gắng giải quyết cược bị kẹt trước đó...';
-                clientGameResultForResolve = GameResult.DRAW; // Ưu tiên DRAW để thử hoàn tiền
-                // Không chia bài, không hiển thị bài mới cho trường hợp này
-                playerPoints = -1; dealerPoints = -1; // Giá trị giả để không hiển thị
-            } else {
-                throw new Error("Trạng thái cược không hợp lệ để giải quyết.");
-            }
-
-            document.getElementById('result').innerText = 'Đang xác nhận kết quả với blockchain...';
-            const tx = await contract.resolveBet(clientGameResultForResolve);
-            console.log("resolveBet transaction sent, hash:", tx.hash, "with clientResult:", clientGameResultForResolve);
-            const receipt = await tx.wait();
-            console.log("resolveBet transaction Mined, receipt status:", receipt.status);
-
-            if (receipt.status === 0) {
-                throw new Error("Giao dịch giải quyết cược bị từ chối bởi contract.");
-            }
-            
-            await updateBalance();
-
-            let finalResultMessage = '';
-            // Hiển thị kết quả chỉ khi đó là lượt chơi bình thường
-            if (currentBetAmount > 0) { // currentBetAmount > 0 ám chỉ đây là lượt chơi mới, không phải dọn cược
-                if (clientGameResultForResolve === GameResult.WIN) {
-                    finalResultMessage = `BẠN THẮNG! Tiền thưởng đã được gửi vào ví!`;
-                } else if (clientGameResultForResolve === GameResult.LOSS) {
-                    finalResultMessage = `NHÀ CÁI THẮNG! Chúc may mắn lần sau!`;
-                } else { // GameResult.DRAW
-                    const betAmountFormatted = currentBetAmount.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 4});
-                    finalResultMessage = `HÒA! Tiền cược (${betAmountFormatted} MON) đã được hoàn lại/xử lý.`;
-                }
-                document.querySelector('#player-hand-area .hand-display').innerText = `${playerHand.map(c=>c.r+c.s).join(', ')} (${playerPoints} nút)`;
-                document.querySelector('#dealer-hand-area .hand-display').innerText = `${dealerHand.map(c=>c.r+c.s).join(', ')} (${dealerPoints} nút)`;
-            } else { // Đây là trường hợp dọn dẹp thành công
-                 finalResultMessage = `Đã giải quyết cược bị kẹt. Số dư hiện tại: ${document.getElementById('wallet-balance').innerText.replace("Số dư ví: ", "")}. Bạn có thể đặt cược mới.`;
-                 document.querySelector('#player-hand-area .hand-display').innerText = ''; // Xóa bài cũ
-                 document.querySelector('#dealer-hand-area .hand-display').innerText = '';
-            }
-            document.getElementById('result').innerText = finalResultMessage;
-            
-            currentBetAmount = 0; 
-            document.getElementById('place-bet-button').disabled = false;
-            document.getElementById('bet-amount').value = '';
-            document.getElementById('deal-cards-button').disabled = true; // Tắt sau khi resolve, bật lại khi placeBet mới
-            document.getElementById('force-resolve-loss-button').disabled = false; // Bật lại nút dọn cược
-
-        } catch (error) {
-            document.getElementById('result').innerText = `Lỗi khi xử lý: ${error.message}`;
-            console.error('Deal/Resolve error:', error);
-            document.getElementById('deal-cards-button').disabled = false; 
-            document.getElementById('place-bet-button').disabled = false; 
-            document.getElementById('force-resolve-loss-button').disabled = false;
-        } finally {
-            loadingSpinner.style.display = 'none';
-        }
     }
-
 
     async function forceResolveAsLoss() {
         if (!account || !contract) { document.getElementById('result').innerText = 'Vui lòng kết nối ví trước.'; return; }
