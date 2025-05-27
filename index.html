@@ -34,12 +34,12 @@
       margin: 20px 0;
       min-height: 60px;
       padding: 10px;
-      background-color: #e8f5e9; /* Màu nền nhẹ cho khu vực bài */
+      background-color: #e8f5e9; 
       border-radius: 8px;
     }
     .hand {
       font-size: 1.1em;
-      color: #388e3c; /* Màu xanh lá cây đậm hơn cho bài */
+      color: #388e3c; 
       font-weight: bold;
     }
     #player-hand, #dealer-hand {
@@ -48,7 +48,7 @@
       border: 1px solid #c8e6c9;
       border-radius: 6px;
       background-color: #f1f8e9;
-      min-height: 40px; /* Để không bị nhảy layout */
+      min-height: 40px; 
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -62,17 +62,17 @@
     button {
       padding: 12px 25px;
       margin: 10px 5px;
-      background-color: #4CAF50; /* Màu xanh lá cây chính */
+      background-color: #4CAF50;
       color: white;
       border: none;
-      border-radius: 25px; /* Bo tròn hơn */
+      border-radius: 25px; 
       cursor: pointer;
       font-size: 1em;
       transition: background-color 0.25s ease, transform 0.1s ease;
       box-shadow: 0 2px 5px rgba(0,0,0,0.15);
     }
     button:hover {
-      background-color: #43A047; /* Đậm hơn khi hover */
+      background-color: #43A047;
       transform: translateY(-1px);
     }
     button:active {
@@ -80,7 +80,7 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
     button:disabled {
-      background-color: #a5d6a7; /* Nhạt hơn khi bị vô hiệu hóa */
+      background-color: #a5d6a7; 
       cursor: not-allowed;
       transform: translateY(0);
       box-shadow: none;
@@ -88,7 +88,7 @@
     input[type="number"] {
       padding: 12px;
       margin: 10px 5px;
-      border-radius: 25px; /* Bo tròn */
+      border-radius: 25px; 
       border: 1px solid #ccc;
       font-size: 1em;
       width: calc(60% - 22px);
@@ -99,12 +99,12 @@
       font-weight: bold;
       margin-top: 20px;
       padding: 15px;
-      background-color: #e3f2fd; /* Màu nền xanh dương nhạt */
+      background-color: #e3f2fd; 
       border: 1px solid #bbdefb;
       border-radius: 8px;
       min-height: 25px;
       line-height: 1.5;
-      color: #1e88e5; /* Màu chữ xanh dương */
+      color: #1e88e5; 
     }
     #wallet-info, #wallet-balance {
       font-size: 0.95em;
@@ -112,7 +112,7 @@
       margin: 8px 0;
     }
     #disconnect-wallet {
-        background-color: #f44336; /* Màu đỏ cho nút ngắt kết nối */
+        background-color: #f44336; 
     }
     #disconnect-wallet:hover {
         background-color: #e53935;
@@ -130,7 +130,7 @@
       border-radius: 50%;
       border-left-color: #4CAF50;
       animation: spin 1s ease infinite;
-      display: none; /* Ẩn ban đầu */
+      display: none; 
       margin: 10px auto;
     }
     @keyframes spin {
@@ -139,25 +139,24 @@
     } 
     #logo-container {
       text-align: center;
-      margin-bottom: 10px; /* Khoảng cách giữa logo và tiêu đề game */
+      margin-bottom: 10px; 
     }
     #logo-container img {
-      max-width: 100px; /* Điều chỉnh kích thước logo */
+      max-width: 100px; 
       height: auto;
     }
 	#banner-container {
   width: 100%;
-  max-width: 900px; /* Điều chỉnh theo kích thước banner của bạn */
-  margin: 30px auto 20px auto; /* Căn giữa và tạo khoảng cách */
+  max-width: 900px; 
+  margin: 30px auto 20px auto; 
   text-align: center;
 }
 #banner-container img {
   max-width: 100%;
   height: auto;
-  border-radius: 8px; /* Bo góc nhẹ cho banner */
+  border-radius: 8px; 
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
- /* --- CSS cũ của bạn từ đây --- */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f0f2f5;
@@ -223,8 +222,8 @@ body {
 .side-panel p { font-size: 0.9em; margin-bottom: 10px; }
 .side-panel a { color: #4CAF50; text-decoration: none; }
 .side-panel a:hover { text-decoration: underline; }
-.side-panel img.sponsor-logo { /* Class riêng cho logo nhà tài trợ nếu cần style khác */
-    max-width: 180px; /* Kích thước ví dụ */
+.side-panel img.sponsor-logo { 
+    max-width: 180px;
     height: auto;
     display: block;
     margin: 15px auto;
@@ -308,7 +307,7 @@ hr { border: 0; height: 1px; background-image: linear-gradient(to right, rgba(0,
     flex-basis: auto;
   }
   #game-wrapper {
-      order: -1; /* Đưa khung game lên đầu trên mobile */
+      order: -1; 
   }
 }
 @media (max-width: 768px) {
@@ -363,7 +362,6 @@ hr { border: 0; height: 1px; background-image: linear-gradient(to right, rgba(0,
 <div id="game-wrapper">
     <div id="game-container">
         <div id="logo-container">
-            <!-- THAY THẾ 'link_den_logo_cua_ban.png' BẰNG ĐƯỜNG DẪN THỰC TẾ ĐẾN FILE LOGO -->
             <img src="logo.jpg" alt="Logo Trò Chơi">
         </div>
         <h1>Bài Cào (3 Cây) - Monad Testnet</h1>
@@ -446,7 +444,7 @@ hr { border: 0; height: 1px; background-image: linear-gradient(to right, rgba(0,
     blockExplorerUrls: ['https://explorer.testnet.monad.xyz/'],
   };
   const loadingSpinner = document.getElementById('loading-spinner');
-  const GameResult = { LOSS: 0, WIN: 1, DRAW: 2 }; // 0: Loss, 1: Win, 2: Draw
+  const GameResult = { LOSS: 0, WIN: 1, DRAW: 2 };
 
   function initWeb3Modal() {
     const providerOptions = {
@@ -634,7 +632,6 @@ hr { border: 0; height: 1px; background-image: linear-gradient(to right, rgba(0,
       document.querySelector('#player-hand-area .hand-display').innerText = '...';
       document.querySelector('#dealer-hand-area .hand-display').innerText = '...';
 
-      // Chia bài sau khi đặt cược thành công
       createDeck();
       shuffleDeck();
       playerHand = deck.splice(0, 3);
