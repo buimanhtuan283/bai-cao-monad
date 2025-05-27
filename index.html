@@ -413,529 +413,344 @@ hr { border: 0; height: 1px; background-image: linear-gradient(to right, rgba(0,
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
   <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
   <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
-   <script>
-    let provider, signer, account, contract, rawProvider;
-    let web3ModalInstance;
-    let currentBetAmount = 0; 
+ <script>
+  let provider, signer, account, contract, rawProvider;
+  let web3ModalInstance;
+  let currentBetAmount = 0;
 
-    const contractAddress = '0x4C660aE681D531498A06042a1F8F09f228b59349'; 
-  const contractABI = [ 
-        {"inputs":[],"stateMutability":"payable","type":"constructor"},
-        {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"player","type":"address"},{"indexed":false,"internalType":"uint256","name":"betAmount","type":"uint256"}],"name":"BetBeingResolved","type":"event"},
-        {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"player","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"BetPlaced","type":"event"},
-        {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"player","type":"address"},{"indexed":false,"internalType":"uint256","name":"betAmount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"payoutAmount","type":"uint256"},{"indexed":false,"internalType":"bool","name":"playerWon","type":"bool"}],"name":"BetResolved","type":"event"},
-        {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"by","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"FundsWithdrawn","type":"event"},
-        {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"activeBets","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-        {"inputs":[],"name":"getContractBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-        {"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
-        {"inputs":[],"name":"placeBet","outputs":[],"stateMutability":"payable","type":"function"},
-        {"inputs":[{"internalType":"bool","name":"playerActuallyWonFromClient","type":"bool"}],"name":"resolveBet","outputs":[],"stateMutability":"nonpayable","type":"function"},
-        {"inputs":[],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},
-        {"stateMutability":"payable","type":"fallback"},
-        {"stateMutability":"payable","type":"receive"}
-    ];
+  const contractAddress = '0x4C660aE681D531498A06042a1F8F09f228b59349';
+  const contractABI = [
+    {"inputs":[],"stateMutability":"payable","type":"constructor"},
+    {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"player","type":"address"},{"indexed":false,"internalType":"uint256","name":"betAmount","type":"uint256"}],"name":"BetBeingResolved","type":"event"},
+    {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"player","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"BetPlaced","type":"event"},
+    {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"player","type":"address"},{"indexed":false,"internalType":"uint256","name":"betAmount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"payoutAmount","type":"uint256"},{"indexed":false,"internalType":"bool","name":"playerWon","type":"bool"}],"name":"BetResolved","type":"event"},
+    {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"by","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"FundsWithdrawn","type":"event"},
+    {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"activeBets","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+    {"inputs":[],"name":"getContractBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+    {"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
+    {"inputs":[],"name":"placeBet","outputs":[],"stateMutability":"payable","type":"function"},
+    {"inputs":[{"internalType":"bool","name":"playerActuallyWonFromClient","type":"bool"}],"name":"resolveBet","outputs":[],"stateMutability":"nonpayable","type":"function"},
+    {"inputs":[],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},
+    {"stateMutability":"payable","type":"fallback"},
+    {"stateMutability":"payable","type":"receive"}
+  ];
 
+  const monadTestnetChainIdDecimal = 10143;
+  const monadTestnetChainIdHex = '0x279F';
+  const monadTestnetRPC = 'https://testnet.monad.xyz/';
+  const monadTestnetInfo = {
+    chainId: monadTestnetChainIdHex,
+    chainName: 'Monad Testnet',
+    rpcUrls: [monadTestnetRPC],
+    nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
+    blockExplorerUrls: ['https://explorer.testnet.monad.xyz/'],
+  };
+  const loadingSpinner = document.getElementById('loading-spinner');
+  const GameResult = { LOSS: 0, WIN: 1, DRAW: 2 }; // 0: Loss, 1: Win, 2: Draw
 
-    const monadTestnetChainIdDecimal = 10143;
-    const monadTestnetChainIdHex = '0x279F';
-    const monadTestnetRPC = 'https://testnet.monad.xyz/';
-    const monadTestnetInfo = {
-        chainId: monadTestnetChainIdHex, chainName: 'Monad Testnet',
-        rpcUrls: [monadTestnetRPC], nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
-        blockExplorerUrls: ['https://explorer.testnet.monad.xyz/'],
+  function initWeb3Modal() {
+    const providerOptions = {
+      walletconnect: { package: WalletConnectProvider.default, options: { rpc: { [monadTestnetChainIdDecimal]: monadTestnetRPC } } },
     };
-    const loadingSpinner = document.getElementById('loading-spinner');
-    const GameResult = { LOSS: 0, WIN: 1, DRAW: 2 }; // 0: Loss, 1: Win, 2: Draw
+    web3ModalInstance = new Web3Modal.default({ cacheProvider: true, providerOptions, theme: "light", disableInjectedProvider: false });
+  }
 
-    function initWeb3Modal() {
-        const providerOptions = {
-          walletconnect: { package: WalletConnectProvider.default, options: { rpc: { [monadTestnetChainIdDecimal]: monadTestnetRPC } } },
-        };
-        web3ModalInstance = new Web3Modal.default({ cacheProvider: true, providerOptions, theme: "light", disableInjectedProvider: false });
-    }
+  async function connectWallet() {
+    if (!web3ModalInstance) { document.getElementById('result').innerText = 'Lỗi: Web3Modal chưa sẵn sàng.'; return; }
+    try {
+      document.getElementById('result').innerText = 'Đang chờ chọn ví...';
+      rawProvider = await web3ModalInstance.connect();
+      provider = new ethers.BrowserProvider(rawProvider);
+      const network = await provider.getNetwork();
 
-    async function connectWallet() {
-      if (!web3ModalInstance) { document.getElementById('result').innerText = 'Lỗi: Web3Modal chưa sẵn sàng.'; return; }
-      try {
-        document.getElementById('result').innerText = 'Đang chờ chọn ví...';
-        rawProvider = await web3ModalInstance.connect();
-        provider = new ethers.BrowserProvider(rawProvider);
-        const network = await provider.getNetwork();
-
-        if (network.chainId !== BigInt(monadTestnetChainIdDecimal)) {
-          document.getElementById('result').innerText = 'Mạng không đúng. Yêu cầu chuyển/thêm Monad Testnet...';
-          try {
-            if (rawProvider.request) { await rawProvider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: monadTestnetChainIdHex }] });
-            } else { alert('Vui lòng chuyển ví sang Monad Testnet (ID: 10143) và thử lại.'); throw new Error('Cần chuyển mạng thủ công.'); }
-            provider = new ethers.BrowserProvider(rawProvider);
-            const newNetwork = await provider.getNetwork();
-            if (newNetwork.chainId !== BigInt(monadTestnetChainIdDecimal)) throw new Error('Chuyển mạng không thành công.');
-          } catch (switchError) {
-            if (switchError.code === 4902 && rawProvider.request) {
-              try {
-                await rawProvider.request({ method: 'wallet_addEthereumChain', params: [monadTestnetInfo] });
-                provider = new ethers.BrowserProvider(rawProvider);
-                const newNetwork = await provider.getNetwork();
-                if (newNetwork.chainId !== BigInt(monadTestnetChainIdDecimal)) throw new Error('Thêm mạng không thành công.');
-              } catch (addError) { throw new Error(`Không thể thêm Monad Testnet: ${addError.message || 'Từ chối.'}`); }
-            } else { throw new Error(`Không thể chuyển/thêm Monad Testnet: ${switchError.message || 'Từ chối/Không hỗ trợ.'}`); }
-          }
+      if (network.chainId !== BigInt(monadTestnetChainIdDecimal)) {
+        document.getElementById('result').innerText = 'Mạng không đúng. Yêu cầu chuyển/thêm Monad Testnet...';
+        try {
+          if (rawProvider.request) { await rawProvider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: monadTestnetChainIdHex }] });
+          } else { alert('Vui lòng chuyển ví sang Monad Testnet (ID: 10143) và thử lại.'); throw new Error('Cần chuyển mạng thủ công.'); }
+          provider = new ethers.BrowserProvider(rawProvider);
+          const newNetwork = await provider.getNetwork();
+          if (newNetwork.chainId !== BigInt(monadTestnetChainIdDecimal)) throw new Error('Chuyển mạng không thành công.');
+        } catch (switchError) {
+          if (switchError.code === 4902 && rawProvider.request) {
+            try {
+              await rawProvider.request({ method: 'wallet_addEthereumChain', params: [monadTestnetInfo] });
+              provider = new ethers.BrowserProvider(rawProvider);
+              const newNetwork = await provider.getNetwork();
+              if (newNetwork.chainId !== BigInt(monadTestnetChainIdDecimal)) throw new Error('Thêm mạng không thành công.');
+            } catch (addError) { throw new Error(`Không thể thêm Monad Testnet: ${addError.message || 'Từ chối.'}`); }
+          } else { throw new Error(`Không thể chuyển/thêm Monad Testnet: ${switchError.message || 'Từ chối/Không hỗ trợ.'}`); }
         }
+      }
+      signer = await provider.getSigner();
+      account = await signer.getAddress();
+      document.getElementById('wallet-info').innerText = `Ví: ${account.slice(0, 6)}...${account.slice(-4)}`;
+      if (contractAddress === 'ĐỊA_CHỈ_CONTRACT_BAICAOV6_CỦA_BẠN' || contractAddress.trim() === '') {
+        document.getElementById('result').innerText = 'LỖI CẤU HÌNH: Vui lòng cập nhật địa chỉ contract trong code JavaScript!';
+        console.error('LỖI CẤU HÌNH: Vui lòng cập nhật địa chỉ contract trong code JavaScript!');
+        alert('LỖI CẤU HÌNH: Vui lòng cập nhật địa chỉ contract trong code JavaScript!');
+        return;
+      }
+      contract = new ethers.Contract(contractAddress, contractABI, signer);
+      await updateBalance();
+      document.getElementById('result').innerText = 'Kết nối ví thành công!';
+      document.getElementById('connect-wallet').style.display = 'none';
+      document.getElementById('disconnect-wallet').style.display = 'inline-block';
+      enableGameControls();
+      subscribeToProviderEvents();
+    } catch (error) {
+      document.getElementById('result').innerText = `Kết nối ví thất bại: ${error.message}`;
+      console.error('Connection error:', error);
+      await disconnectWallet(false);
+    }
+  }
+
+  function subscribeToProviderEvents() {
+    if (!rawProvider) return;
+    rawProvider.on("accountsChanged", async (accounts) => {
+      if (accounts.length === 0) { await disconnectWallet(); }
+      else {
+        account = accounts[0];
+        signer = await provider.getSigner(account);
+        contract = new ethers.Contract(contractAddress, contractABI, signer);
+        document.getElementById('wallet-info').innerText = `Ví: ${account.slice(0, 6)}...${account.slice(-4)}`;
+        await updateBalance();
+        document.getElementById('result').innerText = 'Tài khoản đã thay đổi.';
+        enableGameControls();
+      }
+    });
+    rawProvider.on("chainChanged", async (chainId) => {
+      const newChainIdDecimal = parseInt(chainId, 16);
+      if (newChainIdDecimal !== monadTestnetChainIdDecimal) {
+        document.getElementById('result').innerText = `Đã chuyển sang mạng không hỗ trợ (ID: ${newChainIdDecimal}). Vui lòng chuyển lại Monad Testnet.`;
+        await disconnectWallet();
+      } else {
+        provider = new ethers.BrowserProvider(rawProvider);
         signer = await provider.getSigner();
         account = await signer.getAddress();
-        document.getElementById('wallet-info').innerText = `Ví: ${account.slice(0, 6)}...${account.slice(-4)}`;
-        if (contractAddress === 'ĐỊA_CHỈ_CONTRACT_BAICAOV6_CỦA_BẠN' || contractAddress.trim() === '') {
-            document.getElementById('result').innerText = 'LỖI CẤU HÌNH: Vui lòng cập nhật địa chỉ contract trong code JavaScript!';
-            console.error('LỖI CẤU HÌNH: Vui lòng cập nhật địa chỉ contract trong code JavaScript!');
-            alert('LỖI CẤU HÌNH: Vui lòng cập nhật địa chỉ contract trong code JavaScript!');
-            return; 
-        }
         contract = new ethers.Contract(contractAddress, contractABI, signer);
         await updateBalance();
-        document.getElementById('result').innerText = 'Kết nối ví thành công!';
-        document.getElementById('connect-wallet').style.display = 'none';
-        document.getElementById('disconnect-wallet').style.display = 'inline-block';
+        document.getElementById('result').innerText = 'Mạng đã xác nhận là Monad Testnet.';
         enableGameControls();
-        subscribeToProviderEvents();
-      } catch (error) {
-        document.getElementById('result').innerText = `Kết nối ví thất bại: ${error.message}`;
-        console.error('Connection error:', error);
-        await disconnectWallet(false);
       }
-    }
-
-    function subscribeToProviderEvents() { 
-        if (!rawProvider) return;
-        rawProvider.on("accountsChanged", async (accounts) => {
-            if (accounts.length === 0) { await disconnectWallet(); }
-            else {
-                account = accounts[0];
-                signer = await provider.getSigner(account); 
-                contract = new ethers.Contract(contractAddress, contractABI, signer);
-                document.getElementById('wallet-info').innerText = `Ví: ${account.slice(0, 6)}...${account.slice(-4)}`;
-                await updateBalance();
-                document.getElementById('result').innerText = 'Tài khoản đã thay đổi.';
-                enableGameControls();
-            }
-        });
-        rawProvider.on("chainChanged", async (chainId) => {
-            const newChainIdDecimal = parseInt(chainId, 16);
-            if (newChainIdDecimal !== monadTestnetChainIdDecimal) {
-                document.getElementById('result').innerText = `Đã chuyển sang mạng không hỗ trợ (ID: ${newChainIdDecimal}). Vui lòng chuyển lại Monad Testnet.`;
-                await disconnectWallet();
-            } else {
-                provider = new ethers.BrowserProvider(rawProvider);
-                signer = await provider.getSigner();
-                account = await signer.getAddress();
-                contract = new ethers.Contract(contractAddress, contractABI, signer);
-                await updateBalance();
-                document.getElementById('result').innerText = 'Mạng đã xác nhận là Monad Testnet.';
-                enableGameControls();
-            }
-        });
-        rawProvider.on("disconnect", (error) => { console.log("Provider disconnected:", error); disconnectWallet(); });
-    }
-    async function disconnectWallet(clearCache = true) { /* ... Giữ nguyên ... */ 
-        if (rawProvider && typeof rawProvider.disconnect === 'function' && rawProvider.isWalletConnect) {
-            await rawProvider.disconnect();
-        }
-        if (clearCache && web3ModalInstance) { await web3ModalInstance.clearCachedProvider(); }
-        resetState();
-        document.getElementById('result').innerText = 'Đã ngắt kết nối ví. Kết nối lại để chơi.';
-    }
-
-    function resetState() {
-      provider = signer = account = contract = rawProvider = null;
-      currentBetAmount = 0;
-      document.getElementById('wallet-info').innerText = 'Ví: Chưa kết nối';
-      document.getElementById('wallet-balance').innerText = 'Số dư ví: 0 MON';
-      document.querySelector('#player-hand-area .hand-display').innerText = '';
-      document.querySelector('#dealer-hand-area .hand-display').innerText = '';
-      document.getElementById('connect-wallet').style.display = 'inline-block';
-      document.getElementById('disconnect-wallet').style.display = 'none';
-      disableGameControls();
-    }
-    
-    async function enableGameControls() {
-        document.getElementById('bet-amount').disabled = false;
-        document.getElementById('place-bet-button').disabled = false;
-        document.getElementById('deal-cards-button').disabled = true; 
-        document.getElementById('force-resolve-loss-button').disabled = false; // Bật nút dọn cược
-        if (contract && account) {
-            try {
-                const ownerAddress = await contract.owner();
-                document.getElementById('withdraw-funds-button').disabled = ownerAddress.toLowerCase() !== account.toLowerCase();
-            } catch (e) { 
-                console.error("Error checking owner for withdraw button:", e);
-                document.getElementById('withdraw-funds-button').disabled = true; 
-            }
-        } else {
-            document.getElementById('withdraw-funds-button').disabled = true;
-        }
-    }
-
-    function disableGameControls() {
-        document.getElementById('bet-amount').disabled = true;
-        document.getElementById('place-bet-button').disabled = true;
-        document.getElementById('deal-cards-button').disabled = true;
-        document.getElementById('withdraw-funds-button').disabled = true;
-        document.getElementById('force-resolve-loss-button').disabled = true; // Tắt nút dọn cược khi chưa kết nối
-        document.getElementById('bet-amount').value = '';
-    }
-
-    document.getElementById('connect-wallet').addEventListener('click', connectWallet);
-    document.getElementById('disconnect-wallet').addEventListener('click', () => disconnectWallet(true));
-
-    async function updateBalance() { /* ... Giữ nguyên ... */ 
-        if (!account || !provider) { document.getElementById('wallet-balance').innerText = `Số dư ví: 0 MON`; return; }
-        try {
-            const walletBal = await provider.getBalance(account);
-            document.getElementById('wallet-balance').innerText = `Số dư ví: ${parseFloat(ethers.formatEther(walletBal)).toFixed(4)} MON`;
-        } catch (error) {
-            console.error("Update balance error:", error);
-            document.getElementById('result').innerText = `Cập nhật số dư thất bại.`;
-        }
-    }
-    async function withdrawFunds() { /* ... Giữ nguyên ... */ 
-        if (!account || !contract) { document.getElementById('result').innerText = 'Vui lòng kết nối ví!'; return; }
-        loadingSpinner.style.display = 'block';
-        document.getElementById('result').innerText = 'Đang xử lý yêu cầu rút tiền...';
-        try {
-            const ownerAddr = await contract.owner();
-            if (ownerAddr.toLowerCase() !== account.toLowerCase()) {
-                throw new Error("Chỉ chủ sở hữu mới được rút tiền!");
-            }
-            const tx = await contract.withdraw();
-            await tx.wait();
-            await updateBalance();
-            document.getElementById('result').innerText = `Đã rút thành công quỹ về ví của Owner!`;
-        } catch (error) {
-            document.getElementById('result').innerText = `Lỗi khi rút tiền: ${error.message}`;
-            console.error("Withdraw error:", error);
-        } finally {
-            loadingSpinner.style.display = 'none';
-        }
-    }
-
-    const suits = ['♠', '♣', '♥', '♦'];
-    const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-    let deck = [], playerHand = [], dealerHand = [];
-
-    function createDeck() { deck = []; for (let s of suits) for (let r of ranks) deck.push({ r, s }); }
-    function shuffleDeck() { for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [deck[i],deck[j]]=[deck[j],deck[i]];}}
-    function calculatePoints(hand) {
-      let points = 0;
-      for (let card of hand) {
-        if (['K', 'Q', 'J'].includes(card.r)) points += 0;
-        else if (card.r === 'A') points += 1;
-        else points += parseInt(card.r);
-      }
-      return points % 10;
-    }
-
-    async function placeBet() {
-        const betInput = document.getElementById('bet-amount').value;
-        if (!account || !contract) { document.getElementById('result').innerText = 'Vui lòng kết nối ví!'; return; }
-        if (betInput.trim() === '' || isNaN(parseFloat(betInput)) || parseFloat(betInput) <= 0) {
-            document.getElementById('result').innerText = 'Số tiền cược không hợp lệ!'; return;
-        }
-        const bet = parseFloat(betInput);
-        loadingSpinner.style.display = 'block';
-        document.getElementById('result').innerText = 'Đang xử lý giao dịch đặt cược...';
-        document.getElementById('place-bet-button').disabled = true;
-        document.getElementById('deal-cards-button').disabled = true;
-        document.getElementById('force-resolve-loss-button').disabled = true;
-
-
-        try {
-            const betInWei = ethers.parseUnits(bet.toString(), 'ether');
-            console.log("Checking active bet for account:", account);
-            const currentActiveBetOnContract = await contract.activeBets(account);
-            console.log("Current active bet on contract:", ethers.formatUnits(currentActiveBetOnContract, 'ether'), "MON");
-
-            if (currentActiveBetOnContract > 0n) {
-                throw new Error("Bạn đã có một lượt cược đang chờ xử lý trên contract. Hãy dùng nút 'Dọn Cược Kẹt' hoặc 'Chia Bài' để giải quyết.");
-            }
-
-            const tx = await contract.placeBet({ value: betInWei });
-            console.log("placeBet transaction sent, hash:", tx.hash);
-            await tx.wait();
-            console.log("placeBet transaction Mined.");
-            currentBetAmount = bet;
-            await updateBalance();
-            document.getElementById('result').innerText = `Đã đặt cược ${bet} MON. Nhấn "Chia Bài"!`;
-            document.getElementById('deal-cards-button').disabled = false; // Kích hoạt nút chia bài
-            document.getElementById('force-resolve-loss-button').disabled = true; // Tắt nút dọn khi có cược mới
-        } catch (error) {
-            document.getElementById('result').innerText = `Lỗi khi đặt cược: ${error.message}`;
-            console.error("Place bet error:", error);
-            currentBetAmount = 0; // Reset nếu lỗi
-            document.getElementById('place-bet-button').disabled = false; // Cho phép thử lại
-            // Bật lại nút dọn cược nếu có thể vẫn còn cược kẹt 
-            document.getElementById('force-resolve-loss-button').disabled = false; 
-        } finally {
-            loadingSpinner.style.display = 'none';
-        }
-
-	      if (!account || !contract) { document.getElementById('result').innerText = 'Vui lòng kết nối ví!'; return; }
-        
-        loadingSpinner.style.display = 'block';
-        document.getElementById('deal-cards-button').disabled = true;
-        document.getElementById('place-bet-button').disabled = true;
-        document.getElementById('force-resolve-loss-button').disabled = true;
-
-        try {
-            const activeBetOnContract = await contract.activeBets(account);
-            console.log("DealCards: Active bet on contract before resolve:", ethers.formatUnits(activeBetOnContract, 'ether'), "MON. JS currentBetAmount:", currentBetAmount);
-
-            if (activeBetOnContract === 0n && currentBetAmount <= 0) {
-                document.getElementById('result').innerText = 'Không có cược nào để giải quyết. Vui lòng đặt cược.';
-                document.getElementById('place-bet-button').disabled = false;
-                document.getElementById('force-resolve-loss-button').disabled = false; // Có thể bật lại nếu không có cược
-                loadingSpinner.style.display = 'none';
-                return;
-            }
-
-            let clientGameResultForResolve;
-            let playerPoints, dealerPoints; // Khai báo ở scope rộng hơn để dùng cho hiển thị
-
-            if (currentBetAmount > 0) { // Lượt chơi bình thường, đã có currentBetAmount từ placeBet thành công
-                document.getElementById('result').innerText = 'Đang chia bài...';
-                document.querySelector('#player-hand-area .hand-display').innerText = '...';
-                document.querySelector('#dealer-hand-area .hand-display').innerText = '...';
-                createDeck(); shuffleDeck();
-                playerHand = deck.splice(0, 3);
-                dealerHand = deck.splice(0, 3);
-                playerPoints = calculatePoints(playerHand);
-                dealerPoints = calculatePoints(dealerHand);
-
-                if (playerPoints > dealerPoints) { clientGameResultForResolve = GameResult.WIN; }
-                else if (playerPoints < dealerPoints) { clientGameResultForResolve = GameResult.LOSS; }
-                else { clientGameResultForResolve = GameResult.DRAW; }
-                console.log(`Normal play - Player: ${playerPoints}, Dealer: ${dealerPoints}, Result to send: ${clientGameResultForResolve}`);
-            } else if (activeBetOnContract > 0n && currentBetAmount <= 0) { // Dọn cược kẹt
-                console.log("Cleaning up stuck bet. Will resolve as DRAW.");
-                document.getElementById('result').innerText = 'Đang cố gắng giải quyết cược bị kẹt trước đó...';
-                clientGameResultForResolve = GameResult.DRAW; // Ưu tiên DRAW để thử hoàn tiền
-                // Không chia bài, không hiển thị bài mới cho trường hợp này
-                playerPoints = -1; dealerPoints = -1; // Giá trị giả để không hiển thị
-            } else {
-                throw new Error("Trạng thái cược không hợp lệ để giải quyết.");
-            }
-
-            document.getElementById('result').innerText = 'Đang xác nhận kết quả với blockchain...';
-            const tx = await contract.resolveBet(clientGameResultForResolve);
-            console.log("resolveBet transaction sent, hash:", tx.hash, "with clientResult:", clientGameResultForResolve);
-            const receipt = await tx.wait();
-            console.log("resolveBet transaction Mined, receipt status:", receipt.status);
-
-            if (receipt.status === 0) {
-                throw new Error("Giao dịch giải quyết cược bị từ chối bởi contract.");
-            }
-            
-            await updateBalance();
-
-            let finalResultMessage = '';
-            // Hiển thị kết quả chỉ khi đó là lượt chơi bình thường
-            if (currentBetAmount > 0) { // currentBetAmount > 0 ám chỉ đây là lượt chơi mới, không phải dọn cược
-                if (clientGameResultForResolve === GameResult.WIN) {
-                    finalResultMessage = `BẠN THẮNG! Tiền thưởng đã được gửi vào ví!`;
-                } else if (clientGameResultForResolve === GameResult.LOSS) {
-                    finalResultMessage = `NHÀ CÁI THẮNG! Chúc may mắn lần sau!`;
-                } else { // GameResult.DRAW
-                    const betAmountFormatted = currentBetAmount.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 4});
-                    finalResultMessage = `HÒA! Tiền cược (${betAmountFormatted} MON) đã được hoàn lại/xử lý.`;
-                }
-                document.querySelector('#player-hand-area .hand-display').innerText = `${playerHand.map(c=>c.r+c.s).join(', ')} (${playerPoints} nút)`;
-                document.querySelector('#dealer-hand-area .hand-display').innerText = `${dealerHand.map(c=>c.r+c.s).join(', ')} (${dealerPoints} nút)`;
-            } else { // Đây là trường hợp dọn dẹp thành công
-                 finalResultMessage = `Đã giải quyết cược bị kẹt. Số dư hiện tại: ${document.getElementById('wallet-balance').innerText.replace("Số dư ví: ", "")}. Bạn có thể đặt cược mới.`;
-                 document.querySelector('#player-hand-area .hand-display').innerText = ''; // Xóa bài cũ
-                 document.querySelector('#dealer-hand-area .hand-display').innerText = '';
-            }
-            document.getElementById('result').innerText = finalResultMessage;
-            
-            currentBetAmount = 0; 
-            document.getElementById('place-bet-button').disabled = false;
-            document.getElementById('bet-amount').value = '';
-            document.getElementById('deal-cards-button').disabled = true; // Tắt sau khi resolve, bật lại khi placeBet mới
-            document.getElementById('force-resolve-loss-button').disabled = false; // Bật lại nút dọn cược
-
-        } catch (error) {
-            document.getElementById('result').innerText = `Lỗi khi xử lý: ${error.message}`;
-            console.error('Deal/Resolve error:', error);
-            document.getElementById('deal-cards-button').disabled = false; 
-            document.getElementById('place-bet-button').disabled = false; 
-            document.getElementById('force-resolve-loss-button').disabled = false;
-        } finally {
-            loadingSpinner.style.display = 'none';
-        }
-	    
-    }
-
-    async function dealCards() {
-        if (!account || !contract) { document.getElementById('result').innerText = 'Vui lòng kết nối ví!'; return; }
-        
-        loadingSpinner.style.display = 'block';
-        document.getElementById('deal-cards-button').disabled = true;
-        document.getElementById('place-bet-button').disabled = true;
-        document.getElementById('force-resolve-loss-button').disabled = true;
-
-        try {
-            const activeBetOnContract = await contract.activeBets(account);
-            console.log("DealCards: Active bet on contract before resolve:", ethers.formatUnits(activeBetOnContract, 'ether'), "MON. JS currentBetAmount:", currentBetAmount);
-
-            if (activeBetOnContract === 0n && currentBetAmount <= 0) {
-                document.getElementById('result').innerText = 'Không có cược nào để giải quyết. Vui lòng đặt cược.';
-                document.getElementById('place-bet-button').disabled = false;
-                document.getElementById('force-resolve-loss-button').disabled = false; // Có thể bật lại nếu không có cược
-                loadingSpinner.style.display = 'none';
-                return;
-            }
-
-            let clientGameResultForResolve;
-            let playerPoints, dealerPoints; // Khai báo ở scope rộng hơn để dùng cho hiển thị
-
-            if (currentBetAmount > 0) { // Lượt chơi bình thường, đã có currentBetAmount từ placeBet thành công
-                document.getElementById('result').innerText = 'Đang chia bài...';
-                document.querySelector('#player-hand-area .hand-display').innerText = '...';
-                document.querySelector('#dealer-hand-area .hand-display').innerText = '...';
-                createDeck(); shuffleDeck();
-                playerHand = deck.splice(0, 3);
-                dealerHand = deck.splice(0, 3);
-                playerPoints = calculatePoints(playerHand);
-                dealerPoints = calculatePoints(dealerHand);
-
-                if (playerPoints > dealerPoints) { clientGameResultForResolve = GameResult.WIN; }
-                else if (playerPoints < dealerPoints) { clientGameResultForResolve = GameResult.LOSS; }
-                else { clientGameResultForResolve = GameResult.DRAW; }
-                console.log(`Normal play - Player: ${playerPoints}, Dealer: ${dealerPoints}, Result to send: ${clientGameResultForResolve}`);
-            } else if (activeBetOnContract > 0n && currentBetAmount <= 0) { // Dọn cược kẹt
-                console.log("Cleaning up stuck bet. Will resolve as DRAW.");
-                document.getElementById('result').innerText = 'Đang cố gắng giải quyết cược bị kẹt trước đó...';
-                clientGameResultForResolve = GameResult.DRAW; // Ưu tiên DRAW để thử hoàn tiền
-                // Không chia bài, không hiển thị bài mới cho trường hợp này
-                playerPoints = -1; dealerPoints = -1; // Giá trị giả để không hiển thị
-            } else {
-                throw new Error("Trạng thái cược không hợp lệ để giải quyết.");
-            }
-
-            document.getElementById('result').innerText = 'Đang xác nhận kết quả với blockchain...';
-            const tx = await contract.resolveBet(clientGameResultForResolve);
-            console.log("resolveBet transaction sent, hash:", tx.hash, "with clientResult:", clientGameResultForResolve);
-            const receipt = await tx.wait();
-            console.log("resolveBet transaction Mined, receipt status:", receipt.status);
-
-            if (receipt.status === 0) {
-                throw new Error("Giao dịch giải quyết cược bị từ chối bởi contract.");
-            }
-            
-            await updateBalance();
-
-            let finalResultMessage = '';
-            // Hiển thị kết quả chỉ khi đó là lượt chơi bình thường
-            if (currentBetAmount > 0) { // currentBetAmount > 0 ám chỉ đây là lượt chơi mới, không phải dọn cược
-                if (clientGameResultForResolve === GameResult.WIN) {
-                    finalResultMessage = `BẠN THẮNG! Tiền thưởng đã được gửi vào ví!`;
-                } else if (clientGameResultForResolve === GameResult.LOSS) {
-                    finalResultMessage = `NHÀ CÁI THẮNG! Chúc may mắn lần sau!`;
-                } else { // GameResult.DRAW
-                    const betAmountFormatted = currentBetAmount.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 4});
-                    finalResultMessage = `HÒA! Tiền cược (${betAmountFormatted} MON) đã được hoàn lại/xử lý.`;
-                }
-                document.querySelector('#player-hand-area .hand-display').innerText = `${playerHand.map(c=>c.r+c.s).join(', ')} (${playerPoints} nút)`;
-                document.querySelector('#dealer-hand-area .hand-display').innerText = `${dealerHand.map(c=>c.r+c.s).join(', ')} (${dealerPoints} nút)`;
-            } else { // Đây là trường hợp dọn dẹp thành công
-                 finalResultMessage = `Đã giải quyết cược bị kẹt. Số dư hiện tại: ${document.getElementById('wallet-balance').innerText.replace("Số dư ví: ", "")}. Bạn có thể đặt cược mới.`;
-                 document.querySelector('#player-hand-area .hand-display').innerText = ''; // Xóa bài cũ
-                 document.querySelector('#dealer-hand-area .hand-display').innerText = '';
-            }
-            document.getElementById('result').innerText = finalResultMessage;
-            
-            currentBetAmount = 0; 
-            document.getElementById('place-bet-button').disabled = false;
-            document.getElementById('bet-amount').value = '';
-            document.getElementById('deal-cards-button').disabled = true; // Tắt sau khi resolve, bật lại khi placeBet mới
-            document.getElementById('force-resolve-loss-button').disabled = false; // Bật lại nút dọn cược
-
-        } catch (error) {
-            document.getElementById('result').innerText = `Lỗi khi xử lý: ${error.message}`;
-            console.error('Deal/Resolve error:', error);
-            document.getElementById('deal-cards-button').disabled = false; 
-            document.getElementById('place-bet-button').disabled = false; 
-            document.getElementById('force-resolve-loss-button').disabled = false;
-        } finally {
-            loadingSpinner.style.display = 'none';
-        }
-    }
-
-    async function forceResolveAsLoss() {
-        if (!account || !contract) { document.getElementById('result').innerText = 'Vui lòng kết nối ví trước.'; return; }
-        
-        loadingSpinner.style.display = 'block';
-        document.getElementById('result').innerText = 'Đang cố gắng giải quyết cược cũ như một lượt THUA...';
-        document.getElementById('place-bet-button').disabled = true;
-        document.getElementById('deal-cards-button').disabled = true;
-        document.getElementById('force-resolve-loss-button').disabled = true;
-
-        try {
-            const activeBetOnContract = await contract.activeBets(account);
-            if (activeBetOnContract === 0n) {
-                document.getElementById('result').innerText = 'Không có cược nào đang hoạt động trên contract để giải quyết.';
-                document.getElementById('place-bet-button').disabled = false; // Cho phép đặt cược mới
-                document.getElementById('force-resolve-loss-button').disabled = false;
-                loadingSpinner.style.display = 'none';
-                return;
-            }
-            console.log("Forcing resolveBet(GameResult.LOSS) for stuck bet of amount:", ethers.formatUnits(activeBetOnContract, 'ether'));
-
-            const tx = await contract.resolveBet(GameResult.LOSS); // GameResult.LOSS = 0
-            console.log("Force resolveBet(LOSS) transaction sent, hash:", tx.hash);
-            const receipt = await tx.wait();
-            console.log("Force resolveBet(LOSS) transaction Mined, receipt:", receipt);
-
-            if (receipt.status === 0) { // Giao dịch bị revert
-                throw new Error("Giao dịch forceResolveAsLoss bị từ chối bởi contract. Kiểm tra explorer và console.");
-            }
-            
-            // Nếu thành công, activeBets trên contract đã là 0
-            console.log("Force resolve transaction was successful on-chain.");
-            const newActiveBetOnContract = await contract.activeBets(account);
-            console.log("NEW Active bet on contract for this account AFTER force resolve:", ethers.formatUnits(newActiveBetOnContract, 'ether'));
-            
-            if (newActiveBetOnContract === 0n) {
-                console.log("SUCCESS: activeBets on contract is now 0.");
-                await updateBalance();
-                document.getElementById('result').innerText = 'Đã giải quyết cược cũ thành công (như một lượt thua). Bạn có thể đặt cược mới.';
-                currentBetAmount = 0;
-                document.getElementById('place-bet-button').disabled = false;
-                document.getElementById('deal-cards-button').disabled = true;
-                document.getElementById('bet-amount').value = '';
-            } else {
-                console.error("CRITICAL ERROR: activeBets on contract DID NOT reset to 0 even after successful forceResolveAsLoss. Value is:", newActiveBetOnContract.toString());
-                document.getElementById('result').innerText = 'Lỗi nghiêm trọng: Không thể reset cược trên contract. Vui lòng kiểm tra console và explorer.';
-            }
-        } catch (error) {
-            document.getElementById('result').innerText = `Lỗi khi cố gắng giải quyết cược cũ: ${error.message}`;
-            console.error('Force resolve error:', error);
-            // Cho phép thử lại các nút
-            document.getElementById('place-bet-button').disabled = false;
-            document.getElementById('deal-cards-button').disabled = false;
-            document.getElementById('force-resolve-loss-button').disabled = false;
-        } finally {
-            loadingSpinner.style.display = 'none';
-        }
-    }
-
-    window.addEventListener('DOMContentLoaded', async () => {
-        initWeb3Modal();
-        disableGameControls(); // Gọi disable ban đầu
-        if (web3ModalInstance && web3ModalInstance.cachedProvider) {
-            await connectWallet();
-        } else {
-             document.getElementById('result').innerText = 'Vui lòng kết nối ví để bắt đầu.';
-        }
     });
-  </script>
+    rawProvider.on("disconnect", (error) => { console.log("Provider disconnected:", error); disconnectWallet(); });
+  }
+
+  async function disconnectWallet(clearCache = true) {
+    if (rawProvider && typeof rawProvider.disconnect === 'function' && rawProvider.isWalletConnect) {
+      await rawProvider.disconnect();
+    }
+    if (clearCache && web3ModalInstance) { await web3ModalInstance.clearCachedProvider(); }
+    resetState();
+    document.getElementById('result').innerText = 'Đã ngắt kết nối ví. Kết nối lại để chơi.';
+  }
+
+  function resetState() {
+    provider = signer = account = contract = rawProvider = null;
+    currentBetAmount = 0;
+    document.getElementById('wallet-info').innerText = 'Ví: Chưa kết nối';
+    document.getElementById('wallet-balance').innerText = 'Số dư ví: 0 MON';
+    document.querySelector('#player-hand-area .hand-display').innerText = '';
+    document.querySelector('#dealer-hand-area .hand-display').innerText = '';
+    document.getElementById('connect-wallet').style.display = 'inline-block';
+    document.getElementById('disconnect-wallet').style.display = 'none';
+    disableGameControls();
+  }
+
+  async function enableGameControls() {
+    document.getElementById('bet-amount').disabled = false;
+    document.getElementById('place-bet-button').disabled = false;
+    document.getElementById('force-resolve-loss-button').disabled = false;
+  }
+
+  function disableGameControls() {
+    document.getElementById('bet-amount').disabled = true;
+    document.getElementById('place-bet-button').disabled = true;
+    document.getElementById('force-resolve-loss-button').disabled = true;
+    document.getElementById('bet-amount').value = '';
+  }
+
+  document.getElementById('connect-wallet').addEventListener('click', connectWallet);
+  document.getElementById('disconnect-wallet').addEventListener('click', () => disconnectWallet(true));
+
+  async function updateBalance() {
+    if (!account || !provider) { document.getElementById('wallet-balance').innerText = `Số dư ví: 0 MON`; return; }
+    try {
+      const walletBal = await provider.getBalance(account);
+      document.getElementById('wallet-balance').innerText = `Số dư ví: ${parseFloat(ethers.formatEther(walletBal)).toFixed(4)} MON`;
+    } catch (error) {
+      console.error("Update balance error:", error);
+      document.getElementById('result').innerText = `Cập nhật số dư thất bại.`;
+    }
+  }
+
+  const suits = ['♠', '♣', '♥', '♦'];
+  const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+  let deck = [], playerHand = [], dealerHand = [];
+
+  function createDeck() { deck = []; for (let s of suits) for (let r of ranks) deck.push({ r, s }); }
+  function shuffleDeck() { for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; } }
+  function calculatePoints(hand) {
+    let points = 0;
+    for (let card of hand) {
+      if (['K', 'Q', 'J'].includes(card.r)) points += 0;
+      else if (card.r === 'A') points += 1;
+      else points += parseInt(card.r);
+    }
+    return points % 10;
+  }
+
+  async function placeBet() {
+    const betInput = document.getElementById('bet-amount').value;
+    if (!account || !contract) { document.getElementById('result').innerText = 'Vui lòng kết nối ví!'; return; }
+    if (betInput.trim() === '' || isNaN(parseFloat(betInput)) || parseFloat(betInput) <= 0) {
+      document.getElementById('result').innerText = 'Số tiền cược không hợp lệ!'; return;
+    }
+    const bet = parseFloat(betInput);
+    loadingSpinner.style.display = 'block';
+    document.getElementById('result').innerText = 'Đang xử lý giao dịch đặt cược...';
+    document.getElementById('place-bet-button').disabled = true;
+    document.getElementById('force-resolve-loss-button').disabled = true;
+
+    try {
+      const betInWei = ethers.parseUnits(bet.toString(), 'ether');
+      console.log("Checking active bet for account:", account);
+      const currentActiveBetOnContract = await contract.activeBets(account);
+      console.log("Current active bet on contract:", ethers.formatUnits(currentActiveBetOnContract, 'ether'), "MON");
+
+      if (currentActiveBetOnContract > 0n) {
+        throw new Error("Bạn đã có một lượt cược đang chờ xử lý trên contract. Hãy dùng nút 'Cố gắng Resolve Cược Cũ' để giải quyết.");
+      }
+
+      // Gửi giao dịch đặt cược
+      const tx = await contract.placeBet({ value: betInWei });
+      console.log("placeBet transaction sent, hash:", tx.hash);
+      await tx.wait();
+      console.log("placeBet transaction Mined.");
+      currentBetAmount = bet;
+      await updateBalance();
+      document.getElementById('result').innerText = 'Đang chia bài...';
+      document.querySelector('#player-hand-area .hand-display').innerText = '...';
+      document.querySelector('#dealer-hand-area .hand-display').innerText = '...';
+
+      // Chia bài sau khi đặt cược thành công
+      createDeck();
+      shuffleDeck();
+      playerHand = deck.splice(0, 3);
+      dealerHand = deck.splice(0, 3);
+      const playerPoints = calculatePoints(playerHand);
+      const dealerPoints = calculatePoints(dealerHand);
+
+      let clientGameResultForResolve;
+      if (playerPoints > dealerPoints) { clientGameResultForResolve = GameResult.WIN; }
+      else if (playerPoints < dealerPoints) { clientGameResultForResolve = GameResult.LOSS; }
+      else { clientGameResultForResolve = GameResult.DRAW; }
+      console.log(`Player: ${playerPoints}, Dealer: ${dealerPoints}, Result to send: ${clientGameResultForResolve}`);
+
+      document.getElementById('result').innerText = 'Đang xác nhận kết quả với blockchain...';
+      const resolveTx = await contract.resolveBet(clientGameResultForResolve);
+      console.log("resolveBet transaction sent, hash:", resolveTx.hash, "with clientResult:", clientGameResultForResolve);
+      const receipt = await resolveTx.wait();
+      console.log("resolveBet transaction Mined, receipt status:", receipt.status);
+
+      if (receipt.status === 0) {
+        throw new Error("Giao dịch giải quyết cược bị từ chối bởi contract.");
+      }
+
+      await updateBalance();
+
+      let finalResultMessage = '';
+      if (clientGameResultForResolve === GameResult.WIN) {
+        finalResultMessage = `BẠN THẮNG! Tiền thưởng đã được gửi vào ví!`;
+      } else if (clientGameResultForResolve === GameResult.LOSS) {
+        finalResultMessage = `NHÀ CÁI THẮNG! Chúc may mắn lần sau!`;
+      } else {
+        const betAmountFormatted = currentBetAmount.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 4 });
+        finalResultMessage = `HÒA! Tiền cược (${betAmountFormatted} MON) đã được hoàn lại.`;
+      }
+      document.querySelector('#player-hand-area .hand-display').innerText = `${playerHand.map(c => c.r + c.s).join(', ')} (${playerPoints} nút)`;
+      document.querySelector('#dealer-hand-area .hand-display').innerText = `${dealerHand.map(c => c.r + c.s).join(', ')} (${dealerPoints} nút)`;
+      document.getElementById('result').innerText = finalResultMessage;
+
+      currentBetAmount = 0;
+      document.getElementById('place-bet-button').disabled = false;
+      document.getElementById('bet-amount').value = '';
+      document.getElementById('force-resolve-loss-button').disabled = false;
+
+    } catch (error) {
+      document.getElementById('result').innerText = `Lỗi khi xử lý: ${error.message}`;
+      console.error('Place bet error:', error);
+      currentBetAmount = 0;
+      document.getElementById('place-bet-button').disabled = false;
+      document.getElementById('force-resolve-loss-button').disabled = false;
+    } finally {
+      loadingSpinner.style.display = 'none';
+    }
+  }
+
+  async function forceResolveAsLoss() {
+    if (!account || !contract) { document.getElementById('result').innerText = 'Vui lòng kết nối ví trước.'; return; }
+    
+    loadingSpinner.style.display = 'block';
+    document.getElementById('result').innerText = 'Đang cố gắng giải quyết cược cũ như một lượt THUA...';
+    document.getElementById('place-bet-button').disabled = true;
+    document.getElementById('force-resolve-loss-button').disabled = true;
+
+    try {
+      const activeBetOnContract = await contract.activeBets(account);
+      if (activeBetOnContract === 0n) {
+        document.getElementById('result').innerText = 'Không có cược nào đang hoạt động trên contract để giải quyết.';
+        document.getElementById('place-bet-button').disabled = false;
+        document.getElementById('force-resolve-loss-button').disabled = false;
+        loadingSpinner.style.display = 'none';
+        return;
+      }
+      console.log("Forcing resolveBet(GameResult.LOSS) for stuck bet of amount:", ethers.formatUnits(activeBetOnContract, 'ether'));
+
+      const tx = await contract.resolveBet(GameResult.LOSS);
+      console.log("Force resolveBet(LOSS) transaction sent, hash:", tx.hash);
+      const receipt = await tx.wait();
+      console.log("Force resolveBet(LOSS) transaction Mined, receipt:", receipt);
+
+      if (receipt.status === 0) {
+        throw new Error("Giao dịch forceResolveAsLoss bị từ chối bởi contract. Kiểm tra explorer và console.");
+      }
+
+      console.log("Force resolve transaction was successful on-chain.");
+      const newActiveBetOnContract = await contract.activeBets(account);
+      console.log("NEW Active bet on contract for this account AFTER force resolve:", ethers.formatUnits(newActiveBetOnContract, 'ether'));
+
+      if (newActiveBetOnContract === 0n) {
+        console.log("SUCCESS: activeBets on contract is now 0.");
+        await updateBalance();
+        document.getElementById('result').innerText = 'Đã giải quyết cược cũ thành công (như một lượt thua). Bạn có thể đặt cược mới.';
+        currentBetAmount = 0;
+        document.getElementById('place-bet-button').disabled = false;
+        document.getElementById('bet-amount').value = '';
+      } else {
+        console.error("CRITICAL ERROR: activeBets on contract DID NOT reset to 0 even after successful forceResolveAsLoss. Value is:", newActiveBetOnContract.toString());
+        document.getElementById('result').innerText = 'Lỗi nghiêm trọng: Không thể reset cược trên contract. Vui lòng kiểm tra console và explorer.';
+      }
+    } catch (error) {
+      document.getElementById('result').innerText = `Lỗi khi cố gắng giải quyết cược cũ: ${error.message}`;
+      console.error('Force resolve error:', error);
+      document.getElementById('place-bet-button').disabled = false;
+      document.getElementById('force-resolve-loss-button').disabled = false;
+    } finally {
+      loadingSpinner.style.display = 'none';
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    initWeb3Modal();
+    disableGameControls();
+    if (web3ModalInstance && web3ModalInstance.cachedProvider) {
+      await connectWallet();
+    } else {
+      document.getElementById('result').innerText = 'Vui lòng kết nối ví để bắt đầu.';
+    }
+  });
+</script>
 </body>
 </html>
